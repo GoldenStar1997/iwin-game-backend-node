@@ -1,4 +1,30 @@
-// const userModel=require("../Models/userModel");
+const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const db = require('../db_conn');
+
+const games = async (req, res) => {
+  const query = "SELECT * FROM games WHERE status = ?";
+  db.query(query, [1], async (error, results) => {
+    if (error) throw error;
+    if (results.length > 0) {
+      res.json({
+        success: true,
+        data: results // Assuming `results.data` is the correct property containing the game data
+      });
+      return;
+    } else {
+      res.json({
+        success: false,
+        error: "No Game Found"
+      });
+    }
+  });
+};
+
+module.exports = { games }
+
+
 // const asyncHandler= require("express-async-handler")
 // const jwt =require("jsonwebtoken")
 // const bcrypt=require("bcrypt");
@@ -137,7 +163,6 @@
 
 //     const gameExist= foundUser.gameInfo.find((game)=>game.gameName===otherDetails.gameName)
 
-//     console.log(gameExist)
 
 //     if(gameExist) return res.json({message:"Game Already Has Details"}) 
     

@@ -62,7 +62,7 @@ const gLogin = async (req, res) => {
   const oauth2 = google.oauth2({ version: 'v2', auth: client });
   const { data } = await oauth2.userinfo.get();
   const { id, email, name, picture } = data;
-  
+
   const query = "SELECT * FROM users WHERE email = ?";
   db.query(query,
     [email],
@@ -78,7 +78,6 @@ const gLogin = async (req, res) => {
         })
       }
     })
-
 };
 
 
@@ -88,13 +87,19 @@ const register = async (req, res) => {
   const query = "SELECT * FROM users WHERE email = ?";
   db.query(query, [email], async (error, results) => {
     if (results.length > 0) {
-      return res.json({ message: 'Email Already Exist' });
+      return res.json({
+        success: false,
+        error: 'Email Already Exist'
+      });
     }
     // Check if name already exists
     const query1 = 'SELECT * FROM users WHERE name = ?';
     db.query(query1, [name], async (error, results) => {
       if (results.length > 0) {
-        return res.json({ message: 'name Already Exist' });
+        return res.json({
+          success: false,
+          error: 'name Already Exist'
+        });
       }
 
       const salt = await bcrypt.genSalt(10);
@@ -111,14 +116,10 @@ const register = async (req, res) => {
         const accessToken = jwt.sign({ user: newUser }, "ACCESS_TOKEN_SECRET", { expiresIn: '1h' });
         const refreshToken = jwt.sign({ user: newUser }, "REFRESH_TOKEN_SECRET", { expiresIn: '1h' });
 
-        res.cookie('jwt', refreshToken, {
-          httpOnly: true,
-          secure: false,
-          sameSite: 'None',
-          maxAge: 24 * 60 * 60 * 1000
+        res.json({
+          success: true,
+          accessToken: accessToken
         });
-
-        res.json(accessToken);
       });
     });
   });
@@ -130,7 +131,6 @@ const refresh = (req, res) => {
   const refreshToken = cookies.jwt;
   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, asyncHandler(async (err, decode) => {
     if (err) return res.json({ message: err });
-    console.log(decode.user.name);
     const getUserQuery = 'SELECT * FROM users WHERE name = ?';
     db.query(getUserQuery, [decode.user.name], async (error, results) => {
       const user = results[0];
