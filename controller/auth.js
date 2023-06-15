@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const db = require('../db_conn');
 const { google } = require('googleapis');
 
+const { InviteURL } = require('../util/config');
+
 const generateSecretKey = () => {
   return crypto.randomBytes(32).toString('hex');
 };
@@ -18,13 +20,6 @@ const login = (req, res) => {
     'SELECT * FROM users WHERE name = ? OR email = ?',
     [name, name],
     async (err, result) => {
-      if (err) {
-        res.json({
-          success: false,
-          error: 'Internal Server Error'
-        });
-        return;
-      }
       if (result.length === 0) {
         res.json({
           success: false,
@@ -43,13 +38,13 @@ const login = (req, res) => {
         });
         return;
       }
-      // Generate access token with expiration for one day
+
       const accessToken = jwt.sign(
         { userId: user.id },
         secretKey,
         { expiresIn: '1d' }
       );
-      res.json({ accessToken });
+      res.json({ accessToken, user });
     }
   )
 };
@@ -82,9 +77,10 @@ const gLogin = async (req, res) => {
 
 
 const register = async (req, res) => {
-  const { password, name, email } = req.body;
-
+  const { password, name, email, invitedBy } = req.body;
+  
   const query = "SELECT * FROM users WHERE email = ?";
+  
   db.query(query, [email], async (error, results) => {
     if (results.length > 0) {
       return res.json({
@@ -92,8 +88,9 @@ const register = async (req, res) => {
         error: 'Email Already Exist'
       });
     }
-    // Check if name already exists
+
     const query1 = 'SELECT * FROM users WHERE name = ?';
+    
     db.query(query1, [name], async (error, results) => {
       if (results.length > 0) {
         return res.json({
@@ -101,26 +98,37 @@ const register = async (req, res) => {
           error: 'name Already Exist'
         });
       }
-
+      
       const salt = await bcrypt.genSalt(10);
-      const hashPassword = await bcrypt.hash(password, salt);
+      const hashPassword = await bcrypt.hash(password, salt); 
+      
+      const query2 = 'SELECT * FROM users WHERE name = ?';
+      
+      db.query(query2, [invitedBy], async (error, results) => {
 
-      const query2 = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
-      db.query(query2, [name, email, hashPassword], async (error, results) => {
-        const newUser = {
-          name,
-          email,
-          password: hashPassword
-        };
+        const affiliate_lvl = results.length === 0 ? 0 : results[0].affiliate_lvl < 2 ? results[0].affiliate_lvl + 1 : 3;
+        const affiliate_link = affiliate_lvl < 3 ? InviteURL + "/" +  name : "";
+        const query3 = 'INSERT INTO users (name, email, password, affiliate_link, invitedBy, affiliate_lvl) VALUES (?, ?, ?, ?, ?, ?)';
+        db.query(query3, [name, email, hashPassword, affiliate_link, invitedBy, affiliate_lvl], async (error, results) => {
+          
+          const newUser = {
+            name,
+            email,
+            password: hashPassword
+          };
+          
+          const accessToken = jwt.sign(
+            { user: newUser },
+            secretKey,
+            { expiresIn: '1h' }
+          );
 
-        const accessToken = jwt.sign({ user: newUser }, "ACCESS_TOKEN_SECRET", { expiresIn: '1h' });
-        const refreshToken = jwt.sign({ user: newUser }, "REFRESH_TOKEN_SECRET", { expiresIn: '1h' });
-
-        res.json({
-          success: true,
-          accessToken: accessToken
+          res.json({
+            success: true,
+            accessToken: accessToken
+          });
         });
-      });
+      })
     });
   });
 }
@@ -147,6 +155,5 @@ const logout = (req, res) => {
   res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
   res.json({ message: 'Cookie cleared' });
 };
-
 
 module.exports = { login, gLogin, logout, refresh, register };
