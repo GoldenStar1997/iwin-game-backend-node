@@ -1,6 +1,3 @@
-const crypto = require('crypto');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const db = require('../db_conn');
 
 const games = async (req, res) => {
@@ -23,8 +20,8 @@ const games = async (req, res) => {
 
 const getPlayers = async (req, res) => {
   let { name } = req.body;
-  let query = "SELECT * FROM users WHERE invitedBy = ?";
-  db.query(query, [ name ], async (error, results) => {
+  let query = "SELECT * FROM users WHERE affiliate = ? OR super_aff = ? OR sub_aff = ?";
+  db.query(query, [ name, name, name ], async (error, results) => {
     if (error) throw error;
     if (results.length > 0) {
       res.json({

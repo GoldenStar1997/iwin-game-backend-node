@@ -4,13 +4,11 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require('../db_conn');
 const { google } = require('googleapis');
-
 const { InviteURL } = require('../util/config');
 
 const generateSecretKey = () => {
   return crypto.randomBytes(32).toString('hex');
 };
-
 const secretKey = generateSecretKey();
 
 const login = (req, res) => {
@@ -75,12 +73,13 @@ const gLogin = async (req, res) => {
     })
 };
 
-
 const register = async (req, res) => {
-  const { password, name, email, invitedBy } = req.body;
-  
+  const { password, name, email, affiliate } = req.body;
+  const aff_link = InviteURL + "/" + name;
+  const salt = await bcrypt.genSalt(10);
+  const hpwd = await bcrypt.hash(password, salt);
+
   const query = "SELECT * FROM users WHERE email = ?";
-  
   db.query(query, [email], async (error, results) => {
     if (results.length > 0) {
       return res.json({
@@ -88,9 +87,7 @@ const register = async (req, res) => {
         error: 'Email Already Exist'
       });
     }
-
     const query1 = 'SELECT * FROM users WHERE name = ?';
-    
     db.query(query1, [name], async (error, results) => {
       if (results.length > 0) {
         return res.json({
@@ -98,38 +95,32 @@ const register = async (req, res) => {
           error: 'name Already Exist'
         });
       }
-      
-      const salt = await bcrypt.genSalt(10);
-      const hashPassword = await bcrypt.hash(password, salt); 
-      
-      const query2 = 'SELECT * FROM users WHERE name = ?';
-      
-      db.query(query2, [invitedBy], async (error, results) => {
-
-        const affiliate_lvl = results.length === 0 ? 0 : results[0].affiliate_lvl < 2 ? results[0].affiliate_lvl + 1 : 3;
-        const affiliate_link = affiliate_lvl < 3 ? InviteURL + "/" +  name : "";
-        const query3 = 'INSERT INTO users (name, email, password, affiliate_link, invitedBy, affiliate_lvl) VALUES (?, ?, ?, ?, ?, ?)';
-        db.query(query3, [name, email, hashPassword, affiliate_link, invitedBy, affiliate_lvl], async (error, results) => {
-          
-          const newUser = {
-            name,
-            email,
-            password: hashPassword
-          };
-          
-          const accessToken = jwt.sign(
-            { user: newUser },
-            secretKey,
-            { expiresIn: '1h' }
-          );
-
-          res.json({
-            success: true,
-            accessToken: accessToken
+      const query2 = "SELECT * FROM users WHERE name = ?";
+      db.query(query2, [affiliate], async (error, results) => {
+        const super_aff = results.length > 0 ? results[0].affiliate : "";
+        const query3 = "SELECT * FROM users WHERE name = ?";
+        db.query(query3, [super_aff], async (error, results) => {
+          const sub_aff = results.length > 0 ? results[0].affiliate : "";
+          const query4 = 'INSERT INTO users (name, email, password, aff_link, affiliate, super_aff, sub_aff ) VALUES (?, ?, ?, ?, ?, ?, ?)';
+          db.query(query4, [name, email, hpwd, aff_link, affiliate, super_aff, sub_aff], async () => {
+            const newUser = {
+              name,
+              email,
+              password: hpwd
+            };
+            const accessToken = jwt.sign(
+              { user: newUser },
+              secretKey,
+              { expiresIn: '1h' }
+            );
+            res.json({
+              success: true,
+              accessToken: accessToken
+            });
           });
-        });
+        })
       })
-    });
+    })
   });
 }
 
