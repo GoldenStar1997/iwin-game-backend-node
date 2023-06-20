@@ -1,4 +1,4 @@
-const asyncHandler = require('express-async-handler')
+// const asyncHandler = require('express-async-handler')
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -40,7 +40,7 @@ const login = (req, res) => {
       const accessToken = jwt.sign(
         { userId: user.id },
         secretKey,
-        { expiresIn: '1d' }
+        { expiresIn: '1d' },
       );
       res.json({ accessToken, user });
     }
@@ -97,12 +97,12 @@ const register = async (req, res) => {
       }
       const query2 = "SELECT * FROM users WHERE name = ?";
       db.query(query2, [affiliate], async (error, results) => {
-        const super_aff = results.length > 0 ? results[0].affiliate : "";
+        const sup_aff = results.length > 0 ? results[0].affiliate : "";
         const query3 = "SELECT * FROM users WHERE name = ?";
-        db.query(query3, [super_aff], async (error, results) => {
+        db.query(query3, [sup_aff], async (error, results) => {
           const sub_aff = results.length > 0 ? results[0].affiliate : "";
-          const query4 = 'INSERT INTO users (name, email, password, aff_link, affiliate, super_aff, sub_aff ) VALUES (?, ?, ?, ?, ?, ?, ?)';
-          db.query(query4, [name, email, hpwd, aff_link, affiliate, super_aff, sub_aff], async () => {
+          const query4 = 'INSERT INTO users (name, email, password, aff_link, affiliate, sup_aff, sub_aff ) VALUES (?, ?, ?, ?, ?, ?, ?)';
+          db.query(query4, [name, email, hpwd, aff_link, affiliate, sup_aff, sub_aff], async () => {
             const newUser = {
               name,
               email,
@@ -124,27 +124,27 @@ const register = async (req, res) => {
   });
 }
 
-const refresh = (req, res) => {
-  const cookies = req.cookies;
-  if (!cookies?.jwt) return res.json({ message: 'Login Session Expired' });
-  const refreshToken = cookies.jwt;
-  jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, asyncHandler(async (err, decode) => {
-    if (err) return res.json({ message: err });
-    const getUserQuery = 'SELECT * FROM users WHERE name = ?';
-    db.query(getUserQuery, [decode.user.name], async (error, results) => {
-      const user = results[0];
-      if (!user) return res.json({ message: 'Unauthorized' });
-      const accessToken = jwt.sign({ user }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10s' });
-      res.json(accessToken);
-    });
-  }));
-};
+// const refresh = (req, res) => {
+//   const cookies = req.cookies;
+//   if (!cookies?.jwt) return res.json({ message: 'Login Session Expired' });
+//   const refreshToken = cookies.jwt;
+//   jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, asyncHandler(async (err, decode) => {
+//     if (err) return res.json({ message: err });
+//     const getUserQuery = 'SELECT * FROM users WHERE name = ?';
+//     db.query(getUserQuery, [decode.user.name], async (error, results) => {
+//       const user = results[0];
+//       if (!user) return res.json({ message: 'Unauthorized' });
+//       const accessToken = jwt.sign({ user }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10s' });
+//       res.json(accessToken);
+//     });
+//   }));
+// };
 
-const logout = (req, res) => {
-  const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(204);
-  res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
-  res.json({ message: 'Cookie cleared' });
-};
+// const logout = (req, res) => {
+//   const cookies = req.cookies;
+//   if (!cookies?.jwt) return res.sendStatus(204);
+//   res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
+//   res.json({ message: 'Cookie cleared' });
+// };
 
-module.exports = { login, gLogin, logout, refresh, register };
+module.exports = { login, gLogin, register };

@@ -7,8 +7,4 @@ router.post('/login', login)
 router.post('/google-login', gLogin)
 router.post("/register", register)
 
-router.get("/refresh", refresh)
-router.get("/logout", logout)
-
-
 module.exports = router

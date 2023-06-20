@@ -2,16 +2,16 @@
   "dependencies": {
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
-    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "eth-sig-util": "3.0.0",
     "express": "4.17.0",
-    "express-async-handler": "^1.2.0",
+    "fs": "^0.0.1-security",
     "googleapis": "^118.0.0",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
     "jsonwebtoken": "^9.0.0",
-    "mysql": "^2.18.1",
     "mysql2": "^3.3.3",
     "nodemon": "^2.0.22",
+    "path": "^0.12.7",
     "web3": "1.7.0"
   },
   "scripts": {
