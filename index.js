@@ -6,7 +6,7 @@ const userRoute = require("./routes/user")
 // const adminRoute = require("./routes/admin")
 
 const app = express()
-const PORT = 8483;
+const PORT = 4000;
 
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());

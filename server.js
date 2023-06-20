@@ -2,6 +2,9 @@ const express = require('express');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors');
+
+
 
 const app = express();
 
@@ -20,6 +23,10 @@ const userRoute = require('./routes/user');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use(cors({
+  origin: ['http://45.138.27.74:8483']
+}));
 
 // Serve the static files from the React app
 app.use(express.static(path.join(__dirname, 'build')));
