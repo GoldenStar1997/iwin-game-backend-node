@@ -23,8 +23,22 @@ const getPlayers = async (req, res) => {
   let query = "SELECT * FROM users WHERE affiliate = ? OR sup_aff = ? OR sub_aff = ?";
   db.query(query, [name, name, name], async (error, results) => {
     if (error) throw error;
-    res.json({results});
+    res.json({ results });
   });
 }
 
-module.exports = { games, getPlayers }
+const setAdsClks = async (req, res) => {
+  let { name } = req.body;
+  let query = "SELECT * FROM users WHERE name = ?";
+  db.query(query, [name], async (error, results) => {
+    if (error) throw error;
+    let clickCounts = results[0].clickCounts + 1; 
+    let query1 = "UPDATE users SET clickCounts = ? WHERE name = ?";
+    db.query(query1, [clickCounts, name], async (error, results) => {
+      if (error) throw error;
+      res.json({ success: true });
+    });
+  });
+};
+
+module.exports = { games, getPlayers, setAdsClks }

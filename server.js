@@ -3,9 +3,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const cors = require('cors');
-
-
-
 const app = express();
 
 // const key = fs.readFileSync(__dirname + '/tutorial.key', 'utf-8');
