@@ -16,7 +16,7 @@ const port = 8483;
 
 const authRoute = require('./routes/auth');
 const userRoute = require('./routes/user');
-// const adminRoute = require('./routes/admin');
+const adminRoute = require('./routes/admin');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -30,7 +30,7 @@ app.use(express.static(path.join(__dirname, 'build')));
 
 app.use('/auth', authRoute);
 app.use('/user', userRoute);
-// app.use('/admin', adminRoute);
+app.use('/admin', adminRoute);
 
 // Serve the index.html file for any requests that don't match a static file
 app.get('*', (req, res) => {
