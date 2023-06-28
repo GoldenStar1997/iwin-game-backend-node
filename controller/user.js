@@ -32,7 +32,7 @@ const setAdsClks = async (req, res) => {
   let query = "SELECT * FROM users WHERE name = ?";
   db.query(query, [name], async (error, results) => {
     if (error) throw error;
-    let clickCounts = results[0].clickCounts + 1; 
+    let clickCounts = results[0].clickCounts + 1;
     let query1 = "UPDATE users SET clickCounts = ? WHERE name = ?";
     db.query(query1, [clickCounts, name], async (error, results) => {
       if (error) throw error;
@@ -41,4 +41,15 @@ const setAdsClks = async (req, res) => {
   });
 };
 
-module.exports = { games, getPlayers, setAdsClks }
+const getAffShare = async (req, res) => {
+  let query = "SELECT * FROM aff_revenue WHERE id = 1";
+  db.query(query, async (error, results) => {
+    if (error) throw error;
+    res.json({
+      success: true,
+      data: results
+    });
+  });
+}
+
+module.exports = { games, getPlayers, setAdsClks, getAffShare }
