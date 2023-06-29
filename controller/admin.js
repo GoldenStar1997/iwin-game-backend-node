@@ -76,18 +76,18 @@ const getTours = (req, res) => {
 // add new game
 
 const addNewGame = (req, res) => {
-  const { path } = req.file;
-  const { name, alias } = req.body;
+  const { name, alias, image, filename, summary } = req.body;
   const curTime = new Date().toLocaleDateString();
-  const query = 'INSERT INTO games (name, alias, path, updated_at, status ) VALUES (?, ?, ?, ?, ?)';
+  const query = 'INSERT INTO games (name, alias, image, filename, summary, updated_at, status ) VALUES (?, ?, ?, ?, ?, ?, ?)';
 
-  db.query(query, [name, alias, path, curTime, 0], (error, results) => {
-    if (error) throw error;
-    res.json({
-      success: true,
+  db.query(query,
+    [name, alias, image, filename, summary, curTime, 0],
+    (error, results) => {
+      if (error) throw error;
+      res.json({
+        success: true,
+      })
     })
-  })
-
 }
 
 module.exports = { getAffShare, setAffShare, getUsers, getGames, getTours, addNewGame }
