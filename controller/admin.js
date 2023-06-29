@@ -1,6 +1,7 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const db = require('../db_conn');
+
+
+// get affiliate share
 
 const getAffShare = (req, res) => {
   const query = "SELECT * FROM aff_revenue";
@@ -12,6 +13,8 @@ const getAffShare = (req, res) => {
     });
   });
 };
+
+// set affiliate share
 
 const setAffShare = (req, res) => {
   const {
@@ -28,6 +31,8 @@ const setAffShare = (req, res) => {
   })
 }
 
+// get User list
+
 const getUsers = (req, res) => {
   const query = 'SELECT * FROM users';
 
@@ -39,6 +44,8 @@ const getUsers = (req, res) => {
     })
   })
 }
+
+// get game list
 
 const getGames = (req, res) => {
   const query = 'SELECT * FROM games';
@@ -52,6 +59,8 @@ const getGames = (req, res) => {
   })
 }
 
+// get tour list
+
 const getTours = (req, res) => {
   const query = 'SELECT * FROM tours';
 
@@ -64,4 +73,21 @@ const getTours = (req, res) => {
   })
 }
 
-module.exports = { getAffShare, setAffShare, getUsers, getGames, getTours }
+// add new game
+
+const addNewGame = (req, res) => {
+  const { path } = req.file;
+  const { name, alias } = req.body;
+  const curTime = new Date().toLocaleDateString();
+  const query = 'INSERT INTO games (name, alias, path, updated_at, status ) VALUES (?, ?, ?, ?, ?)';
+
+  db.query(query, [name, alias, path, curTime, 0], (error, results) => {
+    if (error) throw error;
+    res.json({
+      success: true,
+    })
+  })
+
+}
+
+module.exports = { getAffShare, setAffShare, getUsers, getGames, getTours, addNewGame }
